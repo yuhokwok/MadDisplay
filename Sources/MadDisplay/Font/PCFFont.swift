@@ -111,7 +111,7 @@ public final class PCFFont: Font {
     /// Get the font info from the pcf font file stored on SD card.
     /// - Parameter path: the location that the file stored on the SD card.
     public init(path: String) {
-        file = FileDescriptor.open(path)
+        file = try! FileDescriptor.open(path)
 
         var _header = UInt32(0)
         _ = withUnsafeMutableBytes(of: &_header) { buffer in
