@@ -115,7 +115,7 @@ public final class PCFFont: Font {
 
         var _header = UInt32(0)
         _ = withUnsafeMutableBytes(of: &_header) { buffer in
-            file.read(fromAbsoluteOffest: 0, into: buffer)
+            try! file.read(fromAbsoluteOffest: 0, into: buffer)
         }
 
         if _header != header {
@@ -124,13 +124,13 @@ public final class PCFFont: Font {
 
         var tableCount = Int32(0)
         _ = withUnsafeMutableBytes(of: &tableCount) { buffer in
-            file.read(into: buffer)
+            try! file.read(into: buffer)
         }
 
 
         var rawTables = [(type: UInt32, format: UInt32, size: Int32, offset: Int32)](repeating: (0, 0, 0, 0), count: Int(tableCount))
         rawTables.withUnsafeMutableBytes { buffer in
-            file.read(into: buffer)
+            try! file.read(into: buffer)
         }
 
         for rawTable in rawTables {
@@ -192,7 +192,7 @@ public final class PCFFont: Font {
             msbEncoding = true
         }
         _ = withUnsafeMutableBytes(of: &encodingTableHead) { buffer in
-            file.read(fromAbsoluteOffest: Int(bdfEncodings.offset), into: buffer)
+            try! file.read(fromAbsoluteOffest: Int(bdfEncodings.offset), into: buffer)
         }
         if msb {
             exchangeEndian(&encodingTableHead.minByte2)
@@ -202,7 +202,7 @@ public final class PCFFont: Font {
             exchangeEndian(&encodingTableHead.defaultChar)
         }
 
-        encodingDataOffset = file.tell()
+        encodingDataOffset = try! file.tell()
     }
 
     func updateMetricsInfo() {
@@ -217,13 +217,13 @@ public final class PCFFont: Font {
         }
 
         _ = withUnsafeMutableBytes(of: &metricsTableHead) { buffer in
-            file.read(fromAbsoluteOffest: Int(metrics.offset), into: buffer)
+            try! file.read(fromAbsoluteOffest: Int(metrics.offset), into: buffer)
         }
         if msb {
             exchangeEndian(&metricsTableHead.metricsCount)
         }
 
-        metricsDataOffset = file.tell()
+        metricsDataOffset = try! file.tell()
     }
 
     func updateBitmapInfo() {
@@ -236,13 +236,13 @@ public final class PCFFont: Font {
         }
 
         _ = withUnsafeMutableBytes(of: &bitmapTableHead) { buffer in
-            file.read(fromAbsoluteOffest: Int(bitmaps.offset), into: buffer)
+            try! file.read(fromAbsoluteOffest: Int(bitmaps.offset), into: buffer)
         }
         if msb {
             exchangeEndian(&bitmapTableHead.glyphCount)
         }
 
-        bitmapIndexOffset = file.tell()
+        bitmapIndexOffset = try! file.tell()
         bitmapDataOffset = bitmapIndexOffset + Int(bitmapTableHead.glyphCount) * 4 + 4 * 4
     }
 
@@ -256,7 +256,7 @@ public final class PCFFont: Font {
 
         var maxBounds = UncompressedMetricsData()
         _ = withUnsafeMutableBytes(of: &maxBounds) { buffer in
-            file.read(fromAbsoluteOffest: Int(bdfAccel.offset + 24) + MemoryLayout<UncompressedMetricsData>.size, into: buffer)
+            try! file.read(fromAbsoluteOffest: Int(bdfAccel.offset + 24) + MemoryLayout<UncompressedMetricsData>.size, into: buffer)
         }
         if msb {
             exchangeEndian(&maxBounds.leftBearing)
@@ -287,7 +287,7 @@ public final class PCFFont: Font {
 
         var value = UInt16(0)
         _ = withUnsafeMutableBytes(of: &value) { buffer in
-            file.read(fromAbsoluteOffest: encodingDataOffset + Int(index) * MemoryLayout<UInt16>.size, into: buffer)
+            try! file.read(fromAbsoluteOffest: encodingDataOffset + Int(index) * MemoryLayout<UInt16>.size, into: buffer)
         }
 
         if msbEncoding {
@@ -301,7 +301,7 @@ public final class PCFFont: Font {
         var offset = Int32(0)
 
         _ = withUnsafeMutableBytes(of: &offset) { buffer in
-            file.read(fromAbsoluteOffest: bitmapIndexOffset + Int(index) * MemoryLayout<Int32>.size, into: buffer)
+            try! file.read(fromAbsoluteOffest: bitmapIndexOffset + Int(index) * MemoryLayout<Int32>.size, into: buffer)
         }
 
         if msbBitmapOffset {
@@ -316,7 +316,7 @@ public final class PCFFont: Font {
         //print("index = \(index)")
         //print("offset = \(metricsDataOffset + Int(index) * MemoryLayout<MetricsData>.size)")
         _ = withUnsafeMutableBytes(of: &data) { buffer in
-            file.read(fromAbsoluteOffest: metricsDataOffset + Int(index) * MemoryLayout<MetricsData>.size, into: buffer)
+            try! file.read(fromAbsoluteOffest: metricsDataOffset + Int(index) * MemoryLayout<MetricsData>.size, into: buffer)
         }
 
         let leftBearing = Int(data.leftBearing) - 0x80
@@ -347,7 +347,7 @@ public final class PCFFont: Font {
             let bitmapOffset = getBitmapDataPos(index)
             //print("bitmapOffset = \(bitmapOffset)")
             bitmapData.withUnsafeMutableBytes { buffer in
-                file.read(fromAbsoluteOffest: bitmapOffset, into: buffer)
+                try! file.read(fromAbsoluteOffest: bitmapOffset, into: buffer)
             }
 
             bitmap.MSBMemoryCopy(bitmapData)
