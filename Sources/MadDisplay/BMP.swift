@@ -62,7 +62,7 @@ public struct BMP {
 
         file = try! FileDescriptor.open(path)
         _ = withUnsafeMutableBytes(of: &bfType) { buffer in
-            file.read(into: buffer)
+            try! file.read(into: buffer)
         }
 
         if bfType != header {
@@ -70,11 +70,11 @@ public struct BMP {
         }
 
         _ = withUnsafeMutableBytes(of: &fileHeader) { buffer in
-            file.read(fromAbsoluteOffest: 2, into: buffer)
+            try! file.read(fromAbsoluteOffest: 2, into: buffer)
         }
 
         _ = withUnsafeMutableBytes(of: &infoHeader) { buffer in
-            file.read(fromAbsoluteOffest: 14, into: buffer)
+            try! file.read(fromAbsoluteOffest: 14, into: buffer)
         }
 
         //print(fileHeader)
@@ -90,7 +90,7 @@ public struct BMP {
 
         var imageData = [UInt32](repeating: 0x0, count: imageByteSize / 4)
         _ = imageData.withUnsafeMutableBytes { buffer in
-            file.read(fromAbsoluteOffest: Int(fileHeader.bfOffBits), into: buffer)
+            try! file.read(fromAbsoluteOffest: Int(fileHeader.bfOffBits), into: buffer)
         }
 
         if bitsPerPixel > 8 {
@@ -124,7 +124,7 @@ public struct BMP {
             var colors = [UInt32](repeating: 0, count: colorCount)
 
             _ = colors.withUnsafeMutableBytes { buffer in
-                file.read(fromAbsoluteOffest: 54, into: buffer)
+                try! file.read(fromAbsoluteOffest: 54, into: buffer)
             }
 
             palette = Palette(count: colorCount)
@@ -154,7 +154,7 @@ public struct BMP {
             }
         }
 
-        file.close()
+        try! file.close()
     }
 
     /// Get bitmap info from the BMP file.
