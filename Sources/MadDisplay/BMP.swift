@@ -60,7 +60,7 @@ public struct BMP {
         var fileHeader = FileHeader()
         var infoHeader = InfoHeader()
 
-        file = FileDescriptor.open(path)
+        file = try! FileDescriptor.open(path)
         _ = withUnsafeMutableBytes(of: &bfType) { buffer in
             file.read(into: buffer)
         }
